@@ -1,0 +1,2 @@
+cd _YQCodeFolder_/Install/FMconnect
+_MATLABROOT_/bin/matlab -nodesktop  -r "FMWrapper $1"

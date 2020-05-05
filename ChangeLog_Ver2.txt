@@ -1,0 +1,219 @@
+Change Log YeastQuant X
+Ver2
+
+2019.04.15
+Bug in ResolveNuclAssignment
+Corrected!
+
+
+Changed SegmentYeastFluo to optimize weak nuclei segmentation
+For GreyThreshold segmentation: use multiple theshold based on automatically detected threshold from greythresh function
+=> need to change SegmentOptim parameter in databes to 2
+
+Added generation of .txt files after completion of .mat files saving to minimize missing positions when creating the Export file
+
+Changed DatabaseConnextionParameter.mat to connect to filemaker 16 database
+
+
+
+2017.03.23
+Changes to CombineVar
+Added statment in try-catch test when MAtlab failed to load a datamat file.
+The positions not loaded will be recorded and the last error will be saved in the ExportFile
+Line 29 NotExported = [NotExported, P];
+Line 146
+if ~isempty(NotExported)
+    Export.MissingPositions.PositionNumber = NotExported;
+    Export.MissingPositions.LastLoadError = LoadError;
+end
+
+
+
+Bug in SegementYeastFluo
+DiameterType remains empty
+Change if statement at line 29
+if isfield(Var.SegmentationParameters(ParaNum), 'DiameterType') && ~isempty(Var.SegmentationParameters(ParaNum).DiameterType)
+
+
+2017 02.01
+Bug in CalculatedObject
+HiPixList LoPixList and ConnectedHiPixList cannot be calculated because the are cell arrays
+Add to Exclude list
+ExcludeList = {'CenterX','CenterY','CheckLabel','Area', 'Diameter', 'HiPixList', 'LoPixList', 'ConnectedHiPixList'};
+
+
+
+2017.01.16
+Bug in MeasureObject
+The measurements for HiPixList and LoPixList provided the intensities of the pixels. not the indicesChange lines:
+line 109:
+Var.Measurements.(ObjName).(ImgName).HiPixList{1,O} = SortedIndex(end-NumHiPix+1:end);
+Var.Measurements.(ObjName).(ImgName).LoPixList{1,O} = SortedIndex(1:NumHiPix);
+
+
+2017.01.11
+
+Bug removed in PrepareAnalysis
+Removed bug when preparing analysis combining records Skip Frame and no Skip Frame Value for HPC.
+The SkipFrmae would not be applied to the VarFrame Data 
+line286:         SkipAnalysis = find(VarFrame.Analysis.SkipFrame(1,:)<0)
+
+2017.01.10
+Changes to CombineFrame
+Since HiPixList, LoPixList, ConnectedHiPixList are cells, the combineFrame script was modified to take this into account. It creates cellArrays instead of matrices for the measurements which are not of numeric type.
+
+line 28:
+  if isnumeric(Var.SegMeas(1).(ObjFields{Obj}).(IllumNames{I}).(MeasFields{M}))
+                    Var.Measurements.(ObjFields{Obj}).(IllumNames{I}).(MeasFields{M}) = zeros(Var.Analysis.NumFrame, NumberCell);
+                end
+line 63:
+ if isnumeric(Var.SegMeas(1).(ObjFields{Obj}).(IllumNames{I}).(MeasFields{M}))
+… same as before
+else
+…
+ Var.Measurements.(ObjFields{Obj}).(IllumNames{I}).(MeasFields{M}){F,C} = ...
+                                        Var.SegMeas(F).(ObjFields{Obj}).(IllumNames{I}).(MeasFields{M}){CellInd};
+…
+end
+
+
+2017.01.09
+Changes to MeasureObject
+Add measurements: HiPixList, LoPixList, ConnectedHiPixList
+Which contain the pixel indeces from the HiPix, LoPix and ConnectedHiPix respectively 
+
+
+2016 12.12
+Changes to SegmentNuclBF
+
+line 134 add condition to prevent while loop to run continuously
+  while PropsSeg(1).MajorAxisLength > MaxDiam && fmmThresh > 0.001
+
+Changes to SegmentYeastFluo
+Add variable in Database to define the type of maximum Diameter used to select good cells. By default, it corresponds to the equivalent Diameter.
+Now it can be changed to the MajorAxis of the object.
+Line 29:
+if isfield(Var.SegmentationParameters(ParaNum), 'DiameterType')
+    DiameterType = Var.SegmentationParameters(ParaNum).DiameterType;
+else
+    DiameterType = 'EquivDiameter';
+end
+
+line 534:
+tmp = regionprops(Objects,DiameterType);
+Diameters = [0;cat(1,tmp.(DiameterType))];
+
+
+Also changed the code to prevent a bug if a single BF image is provided:
+At Line 43:
+if isfield(Var.Analysis, 'SegPhiSecImg')
+    ZOffImg = Var.Img.(Var.Analysis.SegPhiSecImg{CallNum});
+    ZOffImg = (ZOffImg-min(ZOffImg(:)))./(max(ZOffImg(:))-min(ZOffImg(:)));
+else 
+    ZOffImg = [];
+end
+
+
+
+At line 104:
+  if isempty(ZOffImg)  %If there is a single BF image use the Infocus image twice
+            CutZOff = CutWithBorder(InFocus, Corners, Border);
+        else
+            CutZOff = CutWithBorder(ZOffImg, Corners, Border);
+        end
+
+
+
+2016.11.03
+Change to SegmentYeastFluo:
+
+For PAD experiments where there is a high background in the image. 
+Segmenttion is problematic Tophat and Botomhat filtering create artefact inthe image
+To remove this background a image opening with a large disk (10*the max object diameter) is used followed by a gaussian filtering
+
+To access this image enhancement use GreyThreshold_deltaBackground as argument for the segmentation process
+
+at line 100:
+ %Enhance image for objects of a given size range
+    if strcmp(SegmentMethod, 'GreyThreshold_deltaBackground')
+        %subtract background intensity from image
+        %Open image with  disk ,uch larger than  objects
+        BackgroundInt = imopen(BlurredImage,strel('disk',MaxDiam*10));
+        %Gaussian Filter image
+        BackgroundInt = imgaussfilt(BackgroundInt, MaxDiam*10/3);
+        %Subtract Background intensity
+        BlurredImage = BlurredImage-BackgroundInt;
+        %Normalize image
+        MinImg = min(BlurredImage(:));
+        MaxImg = max(BlurredImage(:));
+        BlurredImage = (BlurredImage-MinImg)/(MaxImg-MinImg);
+        
+
+
+
+
+2016.10.31
+
+Corrected bug in TrakObjectsSingle:
+When three or more cells were assigned to the same closest cells, the first cell was assigned correctly, but the next ones could be assigned to the same cell.
+Moved:     OppCellNum = find(CellPos(:)~=m);
+within the for loop to update the set of unmatched cells at every iteration.
+Not best solution but it works…
+
+Added TimeStamp in CombineData
+Export the actual timepoint of the frame when the image is taken.
+
+
+Ver 2
+2016 09.28
+Aplly changes to segmentation with SegmentYeastFluo and SegmentNuclBF
+
+SegmentYeastFluo: Changes for Segmentation based on Edge.
+Use Intensity difference between Background and Objects, Solidity and eccentricity to select objects.
+Most segmentation re based on the Greythreshold method and will not be affected.
+
+SegmentNuclBF: Use active coutours to locate Cell around nucleus. This changes affect all NuclBF segmentation and can have a big impact on analysis out come
+
+Also Bug correction to shift position of the Nucl in the image by one pixel:
+
+For instance at line 378:
+        LowI = find(SegI+Corners(1)-Border-1<1);
+        HiI = find(SegI+Corners(1)-Border-1>size(CombNucl,1));
+        LowJ = find(SegJ+Corners(3)-Border-1<1);
+        HiJ = find(SegJ+Corners(3)-Border-1>size(CombNucl,2));
+Bug also corrected in SegNuclBFOLD_V1a
+
+Runs only from Matlab 2014a because activecontour and imsegfmm functions are used 
+
+
+Modify LoadFrameMeas to transfer Timing analysis infor of all frames to DataOUT.mat file
+
+line 21 added:
+VarOUT.Analysis.FrameTiming(F) = Var.Analysis.Timing;
+
+
+
+2016.09.07
+Change to PrepareAnalysis to allow the analysis of only a few positions per Well.
+VarCell = PrepareAnalysis(SearchField, System, PosPerWell)
+
+PosPerWell indicates the number of positions to be analyzed in a given well
+Var.Analysis.NumPosAnalyzed  Contains the number of position analysed
+
+Change to FrameAnalysis.m
+line 259 and 274 Var.Analysis.NumPosAnalyzed == NumDataFiles
+
+Change to CombineData.m
+
+Add Try-Catch statement at line 24-30 to skip to next loop if Data.mat file cannot be loaded
+
+
+
+2016.05.17
+Ver1a
+Main change to PrepareAnalysis, FrameAnalysis ParallelFrameAnalysis LoadImage and Databse
+
+Change the behavior of Skip:
+If Skip is for segmented images: Only the frames where Skip images are recorded are used for segmentation (same as before)
+If Skip is on Analysis images. Segmentation is performed at every frame. For the SkippedImage a blank (all zeros) image is created when no image was recorded
+

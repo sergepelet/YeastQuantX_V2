@@ -1,0 +1,46 @@
+jvanderm$ ssh jvanderm@wally-front1.unil.ch
+
+
+cd /scratch/wally/FAC/FBM/DMF/jvanderm/community_analysis/
+
+# 1. to move a folder from scratch to NAS (called 'Isilon')
+# change your username or path in the example below
+#-B will create the folder if it doesn't yet exist
+#-i is file by file transfer
+
+movedat -i -B /scratch/wally/FAC/FBM/DMF/jvanderm/community_analysis/Lake_Water jvanderm@dexwin.unil.ch:FAC/FBM/DMF/jvanderm/community_analysis/D2c/Lake_Water
+
+movedat -i -B /scratch/wally/FAC/FBM/DMF/jvanderm/community_analysis/V3V4_fastq_reads jvanderm@dexwin.unil.ch:FAC/FBM/DMF/jvanderm/community_analysis/D2c/V3V4_fastq_reads
+
+movedat -i -B /scratch/wally/FAC/FBM/DMF/jvanderm/community_analysis/SILVA_132_QIIME_release jvanderm@dexwin.unil.ch:FAC/FBM/DMF/jvanderm/community_analysis/D2c/SILVA_132_QIIME_release
+
+#2. to move a single file from scratch to NAS; don't use -i
+#example (from within the folder on scratch)
+
+movedat input_viewer jvanderm@dexwin.unil.ch:FAC/FBM/DMF/jvanderm/community_analysis/D2c/Lake_Water/
+
+3. to move files from Isilon back to scratch
+# change your username or path in the example below
+
+movedat jvanderm@dexwin.unil.ch:FAC/FBM/DMF/jvanderm/community_analysis/D2c/Lake_Water/input_viewer /scratch/wally/FAC/FBM/DMF/jvanderm/community_analysis/
+
+#more documentation on movedat
+
+
+https://www.dataexpedition.com/expedat/Docs/index.html?p=https://www.dataexpedition.com/expedat/Docs/movedat/
+ 
+
+#data on the NAS server are directly visible by connecting to the server
+
+smb://nas.unil.ch/RECHERCHE/FAC/FBM/DMF/jvanderm
+
+
+
+movedat -i -B /scratch/wally/FAC/FBM/DMF/spelet1/single_cells/D2c/Serge/2021/200408 spelet1@dexwin.unil.ch:FAC/FBM/DMF/spelet1/single_cells/D2c/Serge/
+
+
+/Volumes/recherche/FAC/FBM/DMF/spelet1/single_cells/D2c/Serge/2021/200408/Mating.png
+
+
+
+movedat -i -B spelet1@dexwin.unil.ch:FAC/FBM/DMF/spelet1/single_cells/D2c/Serge/2021/200408 /scratch/wally/FAC/FBM/DMF/spelet1/single_cells/D2c/Serge/2021/200408

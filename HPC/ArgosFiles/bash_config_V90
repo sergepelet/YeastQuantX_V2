@@ -1,0 +1,15 @@
+# .bashrc
+
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+	. /etc/bashrc
+fi
+
+# User specific aliases and functions
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/soft/rhel6-x86_64/matlab-MCR/v90/runtime/glnxa64:/soft/rhel6-x86_64/matlab-MCR/v90/bin/glnxa64:/soft/rhel6-x86_64/matlab-MCR/v90/sys/os/glnxa64:/soft/rhel6-x86_64/matlab-MCR/v90/sys/opengl/lib/glnxa64
+XAPPLRESDIR=/soft/rhel6-x86_64/matlab-MCR/v90/X11/app-defaults
+
+export XAPPLRESDIR
+export LD_LIBRARY_PATH
+
+# export MATLAB_JAVA=/usr/lib/jvm/java-1.6.0-openjdk-1.6.0.0.x86_64/jre
